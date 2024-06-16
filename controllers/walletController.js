@@ -146,7 +146,7 @@ exports.confirmWithdraw = catchAsyncErrors(async (req, res, next) => {
       );
     }
     user.wallet.withdraw += walletRequest.amount;
-    user.wallet.surplus -= walletRequest.amount;
+    // user.wallet.surplus -= walletRequest.amount;
     await user.save();
   } else if (status === "Từ chối") {
     // Hoàn lại số tiền về surplus
