@@ -3,6 +3,7 @@ const ErrorHander = require("../utils/errorhander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const responseData = require("../utils/responseData");
 const cloudinary = require("cloudinary");
+const Chat = require("../models/chatModel");
 
 //createMessage
 exports.createMessage = catchAsyncErrors(async (req, res, next) => {
@@ -37,6 +38,8 @@ exports.createMessage = catchAsyncErrors(async (req, res, next) => {
   try {
     const message = new Message(messageData);
     const savedMessage = await message.save();
+
+    await Chat.findByIdAndUpdate(chatId, { lastMessageTime: new Date() });
     responseData(savedMessage, 200, "Message sent successfully", res);
   } catch (err) {
     return next(new ErrorHander(err.message, 500));
