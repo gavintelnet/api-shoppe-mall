@@ -199,6 +199,7 @@ exports.getWithdrawRequests = catchAsyncErrors(async (req, res, next) => {
 
   let searchQuery = {
     type: "withdraw",
+    code: { $not: /^CMS/ },
   };
 
   if (search) {
@@ -342,6 +343,7 @@ exports.getWithdrawHistoryByCustomer = catchAsyncErrors(
     const withdrawHistory = await Wallet.find({
       customer: customerId,
       type: "withdraw",
+      code: { $not: /^CMS/ },
     })
       .populate("customer", "name email")
       .populate("handler", "name email");
