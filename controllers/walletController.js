@@ -88,42 +88,6 @@ exports.requestWithdraw = catchAsyncErrors(async (req, res, next) => {
   responseData(walletRequest, 201, "Gửi yêu cầu rút tiền thành công", res);
 });
 
-// exports.confirmWithdraw = catchAsyncErrors(async (req, res, next) => {
-//   const { id } = req.params;
-//   const { status, handler, note, message } = req.body;
-
-//   const walletRequest = await Wallet.findById(id);
-
-//   if (!walletRequest) {
-//     return next(new ErrorHander("Không thấy yêu cầu thực hiện!", 404));
-//   }
-
-//   const user = await User.findById(walletRequest.customer);
-//   if (!user) {
-//     return next(new ErrorHander("Không tìm thấy tài khoản thực hiện!", 404));
-//   }
-
-//   if (status === "Đã hoàn thành") {
-//     if (user.wallet.surplus < walletRequest.amount) {
-//       return next(
-//         new ErrorHander("Số tiền cần rút lớn hơn số tiền trong ví!", 400)
-//       );
-//     }
-//     user.wallet.withdraw += walletRequest.amount;
-//     user.wallet.surplus -= walletRequest.amount;
-//     await user.save();
-//   }
-
-//   walletRequest.status = status;
-//   walletRequest.handler = handler;
-//   walletRequest.note = note;
-//   walletRequest.message = message;
-
-//   await walletRequest.save();
-
-//   responseData(walletRequest, 200, "Cập nhật trạng thái thành công", res);
-// });
-
 exports.confirmWithdraw = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
   const { status, handler, note, message } = req.body;
