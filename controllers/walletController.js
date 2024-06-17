@@ -140,11 +140,11 @@ exports.confirmWithdraw = catchAsyncErrors(async (req, res, next) => {
   }
 
   if (status === "Đã hoàn thành") {
-    if (user.wallet.surplus < walletRequest.amount) {
-      return next(
-        new ErrorHander("Số tiền cần rút lớn hơn số tiền trong ví!", 400)
-      );
-    }
+    // if (user.wallet.surplus < walletRequest.amount) {
+    //   return next(
+    //     new ErrorHander("Số tiền cần rút lớn hơn số tiền trong ví!", 400)
+    //   );
+    // }
     user.wallet.withdraw += walletRequest.amount;
     // user.wallet.surplus -= walletRequest.amount;
     await user.save();
