@@ -30,7 +30,22 @@ cloudinary.config({
 connectDB();
 
 // Enable CORS for all routes
-app.use(cors());
+// app.use(cors());
+
+const allowedOrigins = [process.env.LINK_FE, process.env.LINK_FE_ADMIN];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 // Define a simple route
 app.get("/", (req, res) => {
