@@ -191,6 +191,151 @@ exports.confirmDeposit = catchAsyncErrors(async (req, res, next) => {
   responseData(walletRequest, 200, "Cập nhật trạng thái thành công", res);
 });
 
+// exports.getWithdrawRequests = catchAsyncErrors(async (req, res, next) => {
+//   const { page = 0, size = 10, search, status } = req.body;
+
+//   const limit = parseInt(size);
+//   const skip = parseInt(page) * limit;
+
+//   let searchQuery = {
+//     type: "withdraw",
+//     code: { $not: /^CMS/ },
+//   };
+
+//   if (search) {
+//     searchQuery.$or = [
+//       { "customer.name": { $regex: search, $options: "i" } },
+//       { "customer.username": { $regex: search, $options: "i" } },
+//       { code: { $regex: search, $options: "i" } },
+//     ];
+//   }
+
+//   if (status) {
+//     searchQuery.status = { $regex: status, $options: "i" };
+//   }
+
+//   const withdraw = await Wallet.find(searchQuery)
+//     .skip(skip)
+//     .limit(limit)
+//     .sort({ createdAt: -1 })
+//     .populate({
+//       path: "customer",
+//       select: "name username email phone bank",
+//       populate: {
+//         path: "bank",
+//         select: "bankName bankNumber bankOwner", // Chỉ định các trường của bank mà bạn muốn lấy
+//       },
+//     })
+//     .populate("handler", "name username email");
+
+//   const total = await Wallet.countDocuments(searchQuery);
+
+//   const pendingCount = await Wallet.countDocuments({
+//     type: "withdraw",
+//     status: "Đang chờ xử lý",
+//   });
+
+//   const totalCompletedAmount = await Wallet.aggregate([
+//     {
+//       $match: {
+//         type: "withdraw",
+//         status: "Đã hoàn thành",
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: null,
+//         totalAmount: { $sum: "$amount" },
+//       },
+//     },
+//   ]);
+//   const result = {
+//     withdraw,
+//     pendingCount,
+//     pagination: {
+//       total,
+//       page: parseInt(page),
+//       size: parseInt(size),
+//     },
+//     totalCompletedAmount:
+//       totalCompletedAmount.length > 0 ? totalCompletedAmount[0].totalAmount : 0,
+//   };
+
+//   responseData(result, 200, "Lấy danh sách rút tiền thành công", res);
+// });
+
+// exports.getDepositRequests = catchAsyncErrors(async (req, res, next) => {
+//   const { page = 0, size = 10, search, status } = req.body;
+
+//   const limit = parseInt(size);
+//   const skip = parseInt(page) * limit;
+
+//   let searchQuery = {
+//     type: "deposit",
+//   };
+
+//   if (search) {
+//     searchQuery.$or = [
+//       { "customer.name": { $regex: search, $options: "i" } },
+//       { "customer.username": { $regex: search, $options: "i" } },
+//       { code: { $regex: search, $options: "i" } },
+//     ];
+//   }
+
+//   if (status) {
+//     searchQuery.status = { $regex: status, $options: "i" };
+//   }
+
+//   const deposits = await Wallet.find(searchQuery)
+//     .skip(skip)
+//     .limit(limit)
+//     .sort({ createdAt: -1 })
+//     .populate({
+//       path: "customer",
+//       select: "name username email phone bank",
+//       populate: {
+//         path: "bank",
+//         select: "bankName bankNumber bankOwner", // Chỉ định các trường của bank mà bạn muốn lấy
+//       },
+//     })
+//     .populate("handler", "name username email");
+
+//   const total = await Wallet.countDocuments(searchQuery);
+
+//   const pendingCount = await Wallet.countDocuments({
+//     type: "deposit",
+//     status: "Đang chờ xử lý",
+//   });
+
+//   const totalCompletedAmount = await Wallet.aggregate([
+//     {
+//       $match: {
+//         type: "deposit",
+//         status: "Đã hoàn thành",
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: null,
+//         totalAmount: { $sum: "$amount" },
+//       },
+//     },
+//   ]);
+//   const result = {
+//     deposits,
+//     pendingCount,
+//     pagination: {
+//       total,
+//       page: parseInt(page),
+//       size: parseInt(size),
+//     },
+//     totalCompletedAmount:
+//       totalCompletedAmount.length > 0 ? totalCompletedAmount[0].totalAmount : 0,
+//   };
+
+//   responseData(result, 200, "Lấy danh sách nạp tiền thành công", res);
+// });
+
 exports.getWithdrawRequests = catchAsyncErrors(async (req, res, next) => {
   const { page = 0, size = 10, search, status } = req.body;
 
@@ -199,12 +344,21 @@ exports.getWithdrawRequests = catchAsyncErrors(async (req, res, next) => {
 
   let searchQuery = {
     type: "withdraw",
+    code: { $not: /^CMS/ },
   };
 
   if (search) {
+    const customerIds = await User.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+      ],
+    }).select("_id");
+
+    const customerIdsArray = customerIds.map((c) => c._id);
+
     searchQuery.$or = [
-      { "customer.name": { $regex: search, $options: "i" } },
-      { "customer.username": { $regex: search, $options: "i" } },
+      { customer: { $in: customerIdsArray } },
       { code: { $regex: search, $options: "i" } },
     ];
   }
@@ -274,9 +428,17 @@ exports.getDepositRequests = catchAsyncErrors(async (req, res, next) => {
   };
 
   if (search) {
+    const customerIds = await User.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { username: { $regex: search, $options: "i" } },
+      ],
+    }).select("_id");
+
+    const customerIdsArray = customerIds.map((c) => c._id);
+
     searchQuery.$or = [
-      { "customer.name": { $regex: search, $options: "i" } },
-      { "customer.username": { $regex: search, $options: "i" } },
+      { customer: { $in: customerIdsArray } },
       { code: { $regex: search, $options: "i" } },
     ];
   }
@@ -342,6 +504,7 @@ exports.getWithdrawHistoryByCustomer = catchAsyncErrors(
     const withdrawHistory = await Wallet.find({
       customer: customerId,
       type: "withdraw",
+      code: { $not: /^CMS/ },
     })
       .populate("customer", "name email")
       .populate("handler", "name email");
