@@ -32,7 +32,7 @@ connectDB();
 // Enable CORS for all routes
 // app.use(cors());
 
-const allowedOrigins = [process.env.LINK_FE, process.env.LINK_FE_ADMIN];
+const allowedOrigins = [process.env.LINK_FE, process.env.LINK_FE_ADMIN, process.env.LINK_FE_2];
 
 const corsOptions = {
   origin: (origin, callback) => {
