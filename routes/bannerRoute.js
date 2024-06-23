@@ -19,9 +19,7 @@ router
   .route("/admin/banner/:id")
   .put(isAuthenticatedUser, authorizeRoles("Quản trị viên"), updateBanner);
 
-  router
-  .route("/admin/banners")
-  .post(isAuthenticatedUser, authorizeRoles("Quản trị viên"), getAllBanners);
+router.route("/admin/banners").post(getAllBanners);
 
 router.route("/banner/:id").get(getBannerDetail);
 

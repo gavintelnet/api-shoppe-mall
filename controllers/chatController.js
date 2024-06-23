@@ -29,9 +29,13 @@ exports.findUserChats = catchAsyncErrors(async (req, res, next) => {
   try {
     const chats = await Chat.find({
       members: { $in: [userId] },
-    }).populate("members", "username email");
+    })
+      .populate("members", "username email")
+      .sort({ updatedAt: -1 }); // Sắp xếp theo updatedAt giảm dần
+
     responseData(chats, 200, "successfully", res);
   } catch (err) {
+    console.error(err); // Log lỗi
     return next(new ErrorHander(err.message, 500));
   }
 });
