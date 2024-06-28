@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const cluster = require("cluster");
+const os = require("os");
+const numCPUs = os.cpus().length;
 const app = express();
 const connectDB = require("./config/connectDB");
 const cookieParser = require("cookie-parser");
@@ -26,11 +29,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Connect to MongoDB
 connectDB();
-
-// Enable CORS for all routes
-// app.use(cors());
 
 const allowedOrigins = [
   process.env.LINK_FE,
@@ -101,22 +100,36 @@ app.use("/api/v1", addressUser);
 app.use("/api/v1", chat);
 app.use("/api/v1", message);
 app.use("/api/v1", configSetting);
-// app.use()
 // Middleware for Errors
 app.use(errorMiddleware);
 app.use("/api/v1/translate", autoTranslate);
-// Start the server
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
 
-// Unhandled Promise Rejection
-process.on("unhandledRejection", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log(`Shutting down the server due to Unhandled Promise Rejection`);
+if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
 
-  server.close(() => {
-    process.exit(1);
+  // Fork workers.
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on("exit", (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died`);
+    cluster.fork();
   });
-});
+} else {
+  // Start the server
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Worker ${process.pid} is running on port ${PORT}`);
+  });
+
+  // Unhandled Promise Rejection
+  process.on("unhandledRejection", (err) => {
+    console.log(`Error: ${err.message}`);
+    console.log(`Shutting down the server due to Unhandled Promise Rejection`);
+
+    server.close(() => {
+      process.exit(1);
+    });
+  });
+}
