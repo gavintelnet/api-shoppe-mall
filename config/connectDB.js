@@ -43,10 +43,10 @@ const mongoose = require("mongoose");
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.DB_URL, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      family: 4,
+      maxPoolSize: 2500, // Tăng số lượng kết nối tối đa
+      serverSelectionTimeoutMS: 5000, // Thời gian chờ tối đa khi chọn server
+      socketTimeoutMS: 45000, // Thời gian chờ tối đa khi kết nối socket
+      family: 4, // Sử dụng IPv4
     });
 
     mongoose.connection.on("connected", () => {
